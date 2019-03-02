@@ -3,37 +3,33 @@ import numpy  as np
 import pandas as pd
 import matplotlib.pyplot as plt
 
-def calculate_cost(points, t0, t1):
-    distances = 0
-    for index in range(len(points)):
-        distances += (points[index][1] - (t0 + (t1 * points[index][0]))) ** 2
-    return distances / (2 * float(len(points)))
-
-def calculate_gradient_descent(t0, t1, points, learning_rate=0.01, iterations=100):
-    total_points = len(points)
-    current_t0, current_t1 = t0, t1
+def calculate_gradient_descent(initial_thetas, x, y, learning_rate=0.01, iterations=100):
+    total_points = len(y)
+    current_thetas = initial_thetas
+    cost_history = []
 
     for iteration in range(iterations):
-        t0_gradient, t1_gradient = 0, 0
-        for index_point in range(len(points)):
-            t0_gradient += ((current_t0 + (current_t1 * points[index_point][0])) - points[index_point][1])
-            t1_gradient += ((current_t0 + (current_t1 * points[index_point][0])) - points[index_point][1]) * points[index_point][0]
+        thetas_gradient = x.T.dot(x.dot(current_thetas) - y)
+        current_thetas = current_thetas - ((learning_rate * (1 / float(total_points))) * thetas_gradient)
 
-        current_t0 = current_t0 - ((learning_rate * (1 / float(total_points))) * t0_gradient)
-        current_t1 = current_t1 - ((learning_rate * (1 / float(total_points))) * t1_gradient)
+    return current_thetas
 
-    return current_t0, current_t1
+def main():
+    points = pd.read_csv(sys.argv[1], header=None).values
+    x, y = np.hsplit(points, 2)
+    x = np.hstack([np.ones((len(x), 1)), x])
 
-####
+    initial_thetas = np.array([[0.0], [0.0]])
+    learning_rate = 0.01
+    iterations = 1500
 
-points = pd.read_csv(sys.argv[1], header=None).values
+    thetas = calculate_gradient_descent(initial_thetas, x, y, learning_rate, iterations)
 
-initial_t0 = 0
-initial_t1 = 0
+    plt.plot([x[0] for x in points], [y[1] for y in points], 'rx')
+    plt.plot(x[:, 1], x.dot(thetas))
 
-t0, t1 = calculate_gradient_descent(initial_t0, initial_t1, points, 0.001, 15000)
+    plt.show()
 
-plt.plot([x[0] for x in points], [y[1] for y in points], 'rx')
-plt.plot([x[0] for x in points], [((points[counter][0] * t1) + t0) for counter in range(len(points))])
+#------------------------#
 
-plt.show()
+main()
