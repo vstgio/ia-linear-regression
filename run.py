@@ -3,19 +3,25 @@ import numpy  as np
 import pandas as pd
 import matplotlib.pyplot as plt
 
+def calculate_cost(distances):
+    return np.sum(np.square(distances)) / (2 * float(len(distances)))
+
 def calculate_gradient_descent(initial_thetas, x, y, learning_rate=0.01, iterations=100):
     total_points = len(y)
     current_thetas = initial_thetas
-    cost_history = []
+    cost_history = np.array([])
+    thetas_history = np.array([])
 
     for iteration in range(iterations):
-        thetas_gradient = x.T.dot(x.dot(current_thetas) - y)
-        current_thetas = current_thetas - ((learning_rate * (1 / float(total_points))) * thetas_gradient)
+        hypothesis = x.dot(current_thetas)
+        current_thetas = current_thetas - ((learning_rate * (1 / float(total_points))) * x.T.dot(hypothesis - y))
 
-    return current_thetas
+        cost_history = np.append(cost_history, calculate_cost(hypothesis - y))
+
+    return current_thetas, cost_history
 
 def main():
-    points = pd.read_csv(sys.argv[1], header=None).values
+    points = pd.read_csv("sample-data/single-variable.csv", header=None).values
     x, y = np.hsplit(points, 2)
     x = np.hstack([np.ones((len(x), 1)), x])
 
@@ -23,10 +29,13 @@ def main():
     learning_rate = 0.01
     iterations = 1500
 
-    thetas = calculate_gradient_descent(initial_thetas, x, y, learning_rate, iterations)
+    thetas, costs = calculate_gradient_descent(initial_thetas, x, y, learning_rate, iterations)
 
     plt.plot([x[0] for x in points], [y[1] for y in points], 'rx')
     plt.plot(x[:, 1], x.dot(thetas))
+
+    #VISUALIZE THE COST FUNCTION OVER THE NUMBER OF ITERATIONS
+    #plt.plot([(iteration+1) for iteration in range(iterations)], costs[:])
 
     plt.show()
 
