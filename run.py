@@ -10,7 +10,6 @@ def calculate_gradient_descent(initial_thetas, x, y, learning_rate=0.01, iterati
     total_points = len(y)
     current_thetas = initial_thetas
     cost_history = np.array([])
-    thetas_history = np.array([])
 
     for iteration in range(iterations):
         hypothesis = x.dot(current_thetas)
@@ -20,22 +19,37 @@ def calculate_gradient_descent(initial_thetas, x, y, learning_rate=0.01, iterati
 
     return current_thetas, cost_history
 
-def main():
-    points = pd.read_csv("sample-data/single-variable.csv", header=None).values
-    x, y = np.hsplit(points, 2)
-    x = np.hstack([np.ones((len(x), 1)), x])
+def normalize_values(values):
+    means = values.mean(0)
+    sdeviation = np.std(values, axis=0)
+    values_normalized = (values - means) / sdeviation
 
-    initial_thetas = np.array([[0.0], [0.0]])
+    return values_normalized, means, sdeviation
+
+def main():
+    values = pd.read_csv("sample-data/multiple-variables.csv", header=None).values
+    values_normalized, means, sdeviation, x, y = None, None, None, None, None
+
+    if len(sys.argv) > 1:
+        values_normalized, means, sdeviation = normalize_values(values)
+        x = values_normalized[:, :-1]
+        y = values_normalized[:, -1]
+        y = y.reshape(len(y), 1)
+        x = np.hstack([np.ones((len(y), 1)), x])
+    else:
+        x = values[:, :-1]
+        y = values[:, -1]
+        y = y.reshape(len(y), 1)
+        x = np.hstack([np.ones((len(y), 1)), x])
+
+    initial_thetas = np.zeros((x.shape[1], 1))
     learning_rate = 0.01
     iterations = 1500
 
     thetas, costs = calculate_gradient_descent(initial_thetas, x, y, learning_rate, iterations)
 
-    plt.plot([x[0] for x in points], [y[1] for y in points], 'rx')
-    plt.plot(x[:, 1], x.dot(thetas))
-
     #VISUALIZE THE COST FUNCTION OVER THE NUMBER OF ITERATIONS
-    #plt.plot([(iteration+1) for iteration in range(iterations)], costs[:])
+    plt.plot([(iteration+1) for iteration in range(iterations)], costs[:])
 
     plt.show()
 
