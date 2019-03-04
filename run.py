@@ -26,6 +26,23 @@ def normalize_values(values):
 
     return values_normalized, means, sdeviation
 
+def calculate_normal_equation(x, y):
+    return np.linalg.inv(x.T.dot(x)).dot(x.T).dot(y)
+
+def print_results(normal_equation, gradient_descent):
+    print("")
+    print("---")
+    print("::: RESULTS")
+    print("::: WITH NORMAL EQUATION")
+    for index, theta in enumerate(normal_equation):
+        print("::: t{}  {}".format(index, theta[0]))
+    print("")
+    print("::: WITH GRADIENT DESCENT")
+    for index, theta in enumerate(gradient_descent):
+        print("::: t{}  {}".format(index, theta[0]))
+    print("---")
+    print("")
+
 def main():
     values = pd.read_csv("sample-data/multiple-variables.csv", header=None).values
     values_normalized, means, sdeviation, x, y = None, None, None, None, None
@@ -46,11 +63,14 @@ def main():
     learning_rate = 0.01
     iterations = 1500
 
-    thetas, costs = calculate_gradient_descent(initial_thetas, x, y, learning_rate, iterations)
+    thetas_normal_equation = calculate_normal_equation(x, y)
+    thetas_gradient_descent, costs = calculate_gradient_descent(initial_thetas, x, y, learning_rate, iterations)
+    print_results(thetas_normal_equation, thetas_gradient_descent)
 
     #VISUALIZE THE COST FUNCTION OVER THE NUMBER OF ITERATIONS
     plt.plot([(iteration+1) for iteration in range(iterations)], costs[:])
-
+    plt.xlabel("ITERATIONS", labelpad=6, fontsize=8)
+    plt.ylabel("COSTS",  labelpad=6, fontsize=8)
     plt.show()
 
 #------------------------#
